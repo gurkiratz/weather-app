@@ -24,7 +24,6 @@ export default function CityWeather() {
   const [activeSlide, setActiveSlide] = useState(0)
 
   const { city } = useLocalSearchParams()
-  console.log('city:', city)
 
   return (
     <View style={{ flex: 1 }}>

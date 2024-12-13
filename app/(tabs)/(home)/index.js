@@ -3,46 +3,90 @@ import {
   Alert,
   Dimensions,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native'
 
-import Carousel, { Pagination } from 'react-native-snap-carousel'
 import { useDispatch, useSelector } from 'react-redux'
-import WeatherCard from '../../../components/WeatherCard'
 import Loader from '../../../components/Loader'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { addCity } from '../../../redux/citySlice'
-import { fetchWeatherByCity } from '../../../lib/weatherService'
+import {
+  fetchWeatherByCity,
+  fetchWeatherByCityImperial,
+} from '../../../lib/weatherService'
 import Search from '../search'
 import WeatherListCard from '../../../components/WeatherListCard'
+import * as Location from 'expo-location'
 
 const { width: screenWidth } = Dimensions.get('window')
 
 export default function Home() {
+  // const [location, setLocation] = useState(null)
+  // const [errorMsg, setErrorMsg] = useState(null)
+  // console.log(location)
+  const unit = useSelector((state) => state.city.unit)
+
   const dispatch = useDispatch()
   const { cities, loading } = useSelector((state) => state.city)
-  const carouselRef = useRef(null)
-  const [activeSlide, setActiveSlide] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await refreshCitiesWeather()
+    setRefreshing(false)
+  }, [])
+
+  const refreshCitiesWeather = async () => {
+    if (cities.length > 0) {
+      for (let city of cities) {
+        try {
+          const weatherData =
+            unit === 'F'
+              ? await fetchWeatherByCityImperial(city.name)
+              : await fetchWeatherByCity(city.name)
+
+          const cityData = {
+            name: weatherData?.location.name,
+            country: weatherData?.location.country,
+            localtime: weatherData?.location.localtime,
+            weather: weatherData?.current,
+          }
+          console.log('updated data', weatherData)
+          dispatch(addCity(cityData))
+        } catch (error) {
+          console.error(`Error refreshing ${city.name}:`, error)
+          Alert.alert('Error', `Failed to refresh weather for ${city.name}`)
+        }
+      }
+    }
+  }
 
   // useEffect(() => {
-  //   // Refresh weather for all stored cities when home screen loads
-  //   const refreshCitiesWeather = async () => {
-  //     for (let city of cities) {
-  //       try {
-  //         const updatedWeather = await fetchWeatherByCity(city.name)
-  //         dispatch(addCity(updatedWeather))
-  //       } catch (error) {
-  //         console.error(`Error refreshing ${city.name}:`, error)
-  //         Alert.alert('Error', `Failed to refresh weather for ${city.name}`)
-  //       }
+  //   async function getCurrentLocation() {
+  //     let { status } = await Location.requestForegroundPermissionsAsync()
+  //     if (status !== 'granted') {
+  //       Alert.alert('Warning', 'Permission to access location was denied')
+  //       setErrorMsg('Permission to access location was denied')
+  //       return
   //     }
+
+  //     let location = await Location.getCurrentPositionAsync({})
+  //     const { coords } = location
+  //     const locObj = {
+  //       latitude: coords.latitude,
+  //       longitude: coords.longitude,
+  //     }
+  //     const obj = await Location.reverseGeocodeAsync(locObj)
+  //     console.log(JSON.parse(obj))
+  //     setLocation(obj.city)
   //   }
 
-  //   refreshCitiesWeather()
-  // }, []) // Empty dependency array means this runs once when screen loads
+  //   getCurrentLocation()
+  // }, [])
 
   return (
     <View style={{ flex: 1 }}>
@@ -53,6 +97,9 @@ export default function Home() {
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         >
           {cities.map((city, index) => (
             <Pressable

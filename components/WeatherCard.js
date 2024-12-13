@@ -1,8 +1,11 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useSelector } from 'react-redux'
 
 const WeatherCard = ({ city }) => {
+  const unit = useSelector((state) => state.city.unit)
+
   return (
     <View style={styles.card}>
       <View style={styles.headerContainer}>
@@ -17,9 +20,11 @@ const WeatherCard = ({ city }) => {
         />
       </View>
 
-      <Text style={styles.temperature}>{city.weather?.temperature}°C</Text>
+      <Text style={styles.temperature}>
+        {city.weather?.temperature}°{unit}
+      </Text>
       <Text style={styles.feelsLike}>
-        Feels like {city.weather?.feelslike}°C
+        Feels like {city.weather?.feelslike}°{unit}
       </Text>
       <Text style={styles.feelsLike}>
         {city.weather?.weather_descriptions[0]}
@@ -79,7 +84,7 @@ const WeatherCard = ({ city }) => {
 
 const styles = StyleSheet.create({
   card: {
-    height: '70%',
+    height: '95%',
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 20,

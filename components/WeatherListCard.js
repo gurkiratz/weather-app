@@ -3,8 +3,11 @@
 import React from 'react'
 import { View, Text, Image, StyleSheet } from 'react-native'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useSelector } from 'react-redux'
 
 const WeatherListCard = ({ city }) => {
+  const unit = useSelector((state) => state.city.unit)
+
   return (
     <View style={styles.card}>
       <View style={styles.headerContainer}>
@@ -17,7 +20,9 @@ const WeatherListCard = ({ city }) => {
           source={{ uri: city.weather?.weather_icons[0] }}
           style={styles.icon}
         />
-        <Text style={styles.temperature}>{city.weather?.temperature}°C</Text>
+        <Text style={styles.temperature}>
+          {city.weather?.temperature}°{unit}
+        </Text>
       </View>
     </View>
   )

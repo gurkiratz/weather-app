@@ -6,21 +6,25 @@ import { addCity, setLoading } from '../../redux/citySlice'
 import { Link, router } from 'expo-router'
 import SearchBar from '../../components/SearchBar'
 import {
-  fetchTorontoWeather,
   fetchWeatherByCity,
+  fetchWeatherByCityImperial,
 } from '../../lib/weatherService'
 
 const Search = () => {
   const [city, setCity] = useState('')
   const dispatch = useDispatch()
   const cities = useSelector((state) => state.city.cities)
+  const unit = useSelector((state) => state.city.unit)
 
   const fetchWeather = async () => {
     if (!city) return Alert.alert('Error', 'Please enter a city name.')
     dispatch(setLoading(true))
 
     try {
-      const weatherData = await fetchWeatherByCity(city)
+      const weatherData =
+        unit === 'F'
+          ? await fetchWeatherByCityImperial(city)
+          : await fetchWeatherByCity(city)
 
       if (weatherData.success === false) {
         console.log(weatherData)
