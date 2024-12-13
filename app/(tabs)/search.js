@@ -1,49 +1,54 @@
-import axios from 'axios';
+import axios from 'axios'
 import React, { useState } from 'react'
 import { Alert, StyleSheet, Text, View } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux';
-import { addCity, setLoading } from '../../redux/citySlice';
-import { Link, router } from 'expo-router';
-import SearchBar from '../../components/SearchBar';
-import { fetchWeatherByCity } from '../../lib/weatherService';
+import { useDispatch, useSelector } from 'react-redux'
+import { addCity, setLoading } from '../../redux/citySlice'
+import { Link, router } from 'expo-router'
+import SearchBar from '../../components/SearchBar'
+import {
+  fetchTorontoWeather,
+  fetchWeatherByCity,
+} from '../../lib/weatherService'
 
 const Search = () => {
-  const [city, setCity] = useState('');
-  const dispatch = useDispatch();
-  const cities = useSelector((state) => state.city.cities);
+  const [city, setCity] = useState('')
+  const dispatch = useDispatch()
+  const cities = useSelector((state) => state.city.cities)
 
   const fetchWeather = async () => {
-    if (!city) return Alert.alert('Error', 'Please enter a city name.');
-    dispatch(setLoading(true));
+    if (!city) return Alert.alert('Error', 'Please enter a city name.')
+    dispatch(setLoading(true))
 
     try {
-      const weatherData = await fetchWeatherByCity(city);
+      const weatherData = await fetchWeatherByCity(city)
 
       if (weatherData.success === false) {
-        Alert.alert('Error', 'City not found. Please try again.');
+        console.log(weatherData)
+        Alert.alert('Error', 'City not found. Please try again.')
       } else {
         const cityData = {
           name: weatherData.location.name,
+          country: weatherData.location.country,
           localtime: weatherData.location.localtime,
           weather: weatherData.current,
-        };
-        dispatch(addCity(cityData));
-        console.log(cities);
-        router.replace('/');
+        }
+        dispatch(addCity(cityData))
+        console.log(cities)
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong.');
+      Alert.alert('Error', 'Something went wrong.')
     } finally {
       setCity('')
-      dispatch(setLoading(false));
+      router.push('/')
+      dispatch(setLoading(false))
     }
-  };
+  }
 
   return (
     // <View style={{ flex: 1, justifyContent: 'center' }}>
     //   <SearchBar value={city} onChangeText={setCity} onSubmit={fetchWeather} />
     // </View>
-      <SearchBar value={city} onChangeText={setCity} onSubmit={fetchWeather} />
+    <SearchBar value={city} onChangeText={setCity} onSubmit={fetchWeather} />
   )
 }
 
